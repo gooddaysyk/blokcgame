@@ -162,9 +162,21 @@
             transform: scale(1.1);
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
+
+        .game-title {
+            color: #00a8ff;
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0, 168, 255, 0.5);
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
     </style>
 </head>
 <body>
+    <h1 class="game-title">Tetris Game</h1>
     <div class="game-container">
         <div class="game-area">
             <canvas id="gameCanvas" width="300" height="600"></canvas>
