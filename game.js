@@ -179,6 +179,8 @@ let lastTimeUpdate = performance.now();
 let lastScore = 0;
 let animationFrameId = null;
 let isGameRunning = false;
+let lockDelay = 500; // 블록이 바닥에 닿은 후 고정되기까지의 시간 (ms)
+let lastLockTime = 0; // 마지막으로 바닥에 닿은 시간
 
 // 게임 초기화 함수
 function initGame() {
@@ -247,11 +249,12 @@ function createNewBlock() {
         const randomColor = COLORS[Math.floor(Math.random() * COLORS.length)];
         nextBlock = new Block(randomShape, randomColor);
         
-        // 게임 오버 체크
+        // 게임 오버 체크 - 새로운 블록이 생성되는 위치에 이미 블록이 있는 경우에만
         if (currentBlock.collision()) {
             handleGameOver();
             return false;
         }
+        
         return true;
     } catch (error) {
         console.error('Error creating new block:', error);
@@ -263,30 +266,22 @@ function createNewBlock() {
 // 블록 이동
 function moveBlock(dx, dy) {
     if (!currentBlock || gameOver || !isGameRunning) return false;
-    
-    try {
-        const originalX = currentBlock.x;
-        const originalY = currentBlock.y;
+
+    currentBlock.x += dx;
+    currentBlock.y += dy;
+
+    if (currentBlock.collision()) {
+        currentBlock.x -= dx;
+        currentBlock.y -= dy;
         
-        currentBlock.x += dx;
-        currentBlock.y += dy;
-        
-        if (currentBlock.collision()) {
-            currentBlock.x = originalX;
-            currentBlock.y = originalY;
-            
-            if (dy > 0) {
-                placeBlock();
-                return false;
-            }
+        // 바닥에 닿았을 때
+        if (dy > 0) {
+            lastLockTime = performance.now();
             return false;
         }
-        return true;
-    } catch (error) {
-        console.error('Error moving block:', error);
-        handleGameOver();
         return false;
     }
+    return true;
 }
 
 // 블록 배치 함수 분리
@@ -375,50 +370,46 @@ function drawBoard() {
     });
 }
 
-// 게임 루프 최적화
+// 게임 루프
 function gameLoop(timestamp) {
-    if (!isGameRunning || gameOver) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-        return;
+    if (!isGameRunning) return;
+
+    const deltaTime = timestamp - lastDrop;
+
+    // 시간 업데이트
+    if (timestamp - lastTimeUpdate >= 1000) {
+        const timeElement = document.querySelector('.time');
+        const seconds = Math.floor((timestamp - startTime) / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        timeElement.textContent = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        lastTimeUpdate = timestamp;
     }
-    
-    try {
-        const currentTime = performance.now();
-        
-        if (currentTime - lastTimeUpdate >= 100) {
-            const gameTime = Math.floor((currentTime - startTime) / 1000);
-            const minutes = Math.floor(gameTime / 60);
-            const seconds = gameTime % 60;
-            document.querySelector('.time').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            lastTimeUpdate = currentTime;
-        }
-        
-        if (lastScore !== score) {
-            document.querySelector('.score').innerHTML = `Score<br>${score}`;
-            lastScore = score;
-        }
-        
-        if (currentTime - lastDrop >= dropInterval) {
-            if (!moveBlock(0, 1)) {
-                if (currentBlock && currentBlock.y <= 1) {
-                    handleGameOver();
-                    return;
+
+    if (currentBlock) {
+        // 블록이 바닥에 닿았는지 확인
+        currentBlock.y++;
+        const isCollision = currentBlock.collision();
+        currentBlock.y--;
+
+        if (isCollision) {
+            // 바닥에 닿은 후 lockDelay 시간이 지났는지 확인
+            if (timestamp - lastLockTime >= lockDelay) {
+                placeBlock();
+                if (!gameOver) {
+                    createNewBlock();
                 }
+                lastDrop = timestamp;
             }
-            lastDrop = currentTime;
+        } else if (deltaTime > dropInterval) {
+            moveBlock(0, 1);
+            lastDrop = timestamp;
+            lastLockTime = 0; // 블록이 이동했으므로 락 타이머 리셋
         }
-        
-        render();
-        
-        if (isGameRunning && !gameOver) {
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-    } catch (error) {
-        console.error('Game loop error:', error);
-        handleGameOver();
     }
+
+    render();
+    animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 // 렌더링 함수 분리
@@ -483,30 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 터치 이벤트 리스너 추가
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleTouch('left');
-    });
-
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleTouch('right');
-    });
-
-    rotateBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleTouch('rotate');
-    });
-
-    dropBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleTouch('drop');
-    });
-
     // 연속 터치를 위한 터치 홀드 처리
     let touchInterval;
-    const touchDelay = 100; // 연속 동작 간격 (밀리초)
+    const touchDelay = 150; // 연속 동작 간격을 조금 늘림
 
     function startTouchInterval(action) {
         touchInterval = setInterval(() => handleTouch(action), touchDelay);
@@ -519,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 좌우 이동 버튼 연속 터치 처리
+    // 터치 이벤트 리스너 추가
     leftBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         handleTouch('left');
@@ -530,6 +500,16 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         handleTouch('right');
         startTouchInterval('right');
+    });
+
+    rotateBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleTouch('rotate');
+    });
+
+    dropBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleTouch('drop');
     });
 
     // 터치 종료 시 인터벌 제거
