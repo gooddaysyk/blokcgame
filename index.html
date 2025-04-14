@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tetris Game</title>
+    <title>테트리스 게임</title>
     <style>
         body {
             margin: 0;
@@ -11,7 +11,7 @@
             flex-direction: column;
             align-items: center;
             background-color: #2c1810;
-            padding: 10px;
+            padding: 5px;
             min-height: 100vh;
             box-sizing: border-box;
             font-family: Arial, sans-serif;
@@ -21,28 +21,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
             width: 100%;
-            max-width: 500px;
+            max-width: 400px;
         }
 
         .game-title {
             color: #d4a373;
-            font-size: 32px;
+            font-size: 28px;
             text-align: center;
             text-transform: uppercase;
             text-shadow: 0 0 20px rgba(212, 163, 115, 0.5);
             font-weight: bold;
-            letter-spacing: 3px;
-            margin: 10px 0;
+            letter-spacing: 2px;
+            margin: 5px 0;
         }
 
         .game-container {
             display: flex;
-            gap: 10px;
-            padding: 10px;
+            gap: 8px;
+            padding: 8px;
             background: rgba(139, 94, 60, 0.2);
-            border-radius: 10px;
+            border-radius: 8px;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             border: 2px solid #d4a373;
             width: 100%;
@@ -144,31 +144,43 @@
             }
 
             .game-area canvas {
-                width: 200px;
-                height: 400px;
+                width: 160px !important;
+                height: 320px !important;
             }
 
             .side-panel {
-                min-width: 80px;
+                min-width: 60px;
                 gap: 5px;
             }
 
             .next-block {
-                padding: 5px;
+                padding: 3px;
             }
 
             .next-block-canvas {
-                width: 70px !important;
-                height: 70px !important;
+                width: 50px !important;
+                height: 50px !important;
             }
 
             .time, .score {
-                font-size: 14px;
+                font-size: 12px;
                 padding: 5px;
             }
 
             .mobile-controls {
                 display: block;
+                margin-top: 10px;
+            }
+
+            .control-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .control-row {
+                gap: 15px;
+                margin: 8px 0;
             }
 
             .controls {
@@ -254,23 +266,23 @@
 </head>
 <body>
     <div class="main-container">
-        <h1 class="game-title">Tetris Game</h1>
+        <h1 class="game-title">테트리스 게임</h1>
         <div class="game-container">
             <div class="game-area">
-                <canvas id="gameCanvas" width="300" height="600"></canvas>
+                <canvas id="gameCanvas" width="240" height="480"></canvas>
             </div>
             <div class="side-panel">
                 <div class="time">00:00</div>
-                <div class="score">Score<br>0</div>
+                <div class="score">점수<br>0</div>
                 <div class="next-block">
-                    <div class="next-block-title">Next</div>
-                    <canvas id="nextBlockCanvas" width="100" height="100" class="next-block-canvas"></canvas>
+                    <div class="next-block-title">다음</div>
+                    <canvas id="nextBlockCanvas" width="80" height="80" class="next-block-canvas"></canvas>
                 </div>
                 <div class="controls">
-                    <p>← → : Move</p>
-                    <p>↑ : Rotate</p>
-                    <p>↓ : Down</p>
-                    <p>Space : Drop</p>
+                    <p>← → : 이동</p>
+                    <p>↑ : 회전</p>
+                    <p>↓ : 아래로</p>
+                    <p>Space : 떨어뜨리기</p>
                 </div>
             </div>
         </div>
