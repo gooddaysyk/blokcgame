@@ -286,12 +286,22 @@
             <h2>게임 오버!</h2>
             <div class="score-display">0</div>
             <div class="modal-buttons">
-                <button class="modal-button play-again" onclick="restartGame()">다시하기</button>
-                <button class="modal-button quit-game" onclick="quitGame()">그만하기</button>
+                <button id="restartBtn" class="modal-button play-again">다시하기</button>
+                <button id="quitBtn" class="modal-button quit-game">그만하기</button>
             </div>
         </div>
     </div>
 
     <script src="game.js"></script>
+    <script>
+        // 게임 오버 모달 버튼 이벤트 리스너
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            restartGame();
+        });
+        
+        document.getElementById('quitBtn').addEventListener('click', function() {
+            quitGame();
+        });
+    </script>
 </body>
 </html> 

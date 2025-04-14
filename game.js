@@ -10,10 +10,22 @@ const ROWS = 20;
 const NEXT_BLOCK_SIZE = 25;
 
 // 캔버스 크기 설정
-canvas.width = BLOCK_SIZE * COLS;
-canvas.height = BLOCK_SIZE * ROWS;
-nextCanvas.width = NEXT_BLOCK_SIZE * 4;
-nextCanvas.height = NEXT_BLOCK_SIZE * 4;
+function resizeCanvas() {
+    // 메인 게임 캔버스
+    canvas.style.width = `${BLOCK_SIZE * COLS}px`;
+    canvas.style.height = `${BLOCK_SIZE * ROWS}px`;
+    canvas.width = BLOCK_SIZE * COLS;
+    canvas.height = BLOCK_SIZE * ROWS;
+    
+    // Next 블록 캔버스
+    nextCanvas.style.width = `${NEXT_BLOCK_SIZE * 4}px`;
+    nextCanvas.style.height = `${NEXT_BLOCK_SIZE * 4}px`;
+    nextCanvas.width = NEXT_BLOCK_SIZE * 4;
+    nextCanvas.height = NEXT_BLOCK_SIZE * 4;
+}
+
+// 초기 캔버스 크기 설정
+resizeCanvas();
 
 // 블록 색상 정의
 const COLORS = [
@@ -185,8 +197,9 @@ let lastTimeUpdate = performance.now();
 let lastScore = 0;
 let animationFrameId = null;
 let isGameRunning = false;
-let lockDelay = 500; // 블록이 바닥에 닿은 후 고정되기까지의 시간 (ms)
-let lastLockTime = 0; // 마지막으로 바닥에 닿은 시간
+let lockDelay = 500;
+let lastLockTime = 0;
+let touchActive = false;
 
 // 게임 초기화 함수
 function initGame() {
@@ -202,6 +215,7 @@ function initGame() {
     lastScore = 0;
     gameOver = false;
     dropInterval = 1500;
+    touchActive = false;
     
     const now = performance.now();
     lastDrop = now;
@@ -210,11 +224,20 @@ function initGame() {
     
     isGameRunning = true;
     
+    // 점수 초기화
+    updateScore();
+    
     createNewBlock();
     
     if (!animationFrameId) {
         animationFrameId = requestAnimationFrame(gameLoop);
     }
+}
+
+// 점수 업데이트 함수
+function updateScore() {
+    const scoreElement = document.querySelector('.score');
+    scoreElement.innerHTML = `점수<br>${score}`;
 }
 
 // 게임 오버 처리
@@ -236,20 +259,32 @@ function handleGameOver() {
 // 게임 재시작
 function restartGame() {
     const modal = document.getElementById('gameOverModal');
-    modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
     initGame();
 }
 
 // 게임 종료
 function quitGame() {
     const modal = document.getElementById('gameOverModal');
-    modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
     gameOver = true;
     isGameRunning = false;
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
     }
+    
+    // 게임 종료 후 초기 상태로
+    board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+    currentBlock = null;
+    nextBlock = null;
+    score = 0;
+    updateScore();
+    render();
 }
 
 // 새로운 블록 생성
@@ -285,8 +320,22 @@ function createNewBlock() {
 function moveBlock(dx, dy) {
     if (!currentBlock || gameOver || !isGameRunning) return false;
 
-    currentBlock.x += dx;
-    currentBlock.y += dy;
+    const newX = currentBlock.x + dx;
+    const newY = currentBlock.y + dy;
+
+    // 이동 전에 경계 체크
+    if (newX < 0 || newX + currentBlock.shape[0].length > COLS || 
+        newY + currentBlock.shape.length > ROWS) {
+        // 바닥에 닿았을 때
+        if (dy > 0 && newY + currentBlock.shape.length > ROWS) {
+            lastLockTime = performance.now();
+            return false;
+        }
+        return false;
+    }
+
+    currentBlock.x = newX;
+    currentBlock.y = newY;
 
     if (currentBlock.collision()) {
         currentBlock.x -= dx;
@@ -343,7 +392,7 @@ function checkLines() {
     
     if (linesCleared > 0) {
         score += linesCleared * 100;
-        // 속도 증가를 더 작게 조정
+        updateScore(); // 점수 업데이트
         dropInterval = Math.max(200, dropInterval - 25);
     }
 }
@@ -406,11 +455,9 @@ function gameLoop(timestamp) {
 
     if (currentBlock) {
         // 블록이 바닥에 닿았는지 확인
-        currentBlock.y++;
-        const isCollision = currentBlock.collision();
-        currentBlock.y--;
-
-        if (isCollision) {
+        const wouldCollide = !moveBlock(0, 1);
+        
+        if (wouldCollide) {
             // 바닥에 닿은 후 lockDelay 시간이 지났는지 확인
             if (timestamp - lastLockTime >= lockDelay) {
                 placeBlock();
@@ -419,15 +466,16 @@ function gameLoop(timestamp) {
                 }
                 lastDrop = timestamp;
             }
-        } else if (deltaTime > dropInterval) {
-            moveBlock(0, 1);
+        } else {
             lastDrop = timestamp;
             lastLockTime = 0; // 블록이 이동했으므로 락 타이머 리셋
         }
     }
 
     render();
-    animationFrameId = requestAnimationFrame(gameLoop);
+    if (!gameOver) {
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
 }
 
 // 렌더링 함수 분리
@@ -461,17 +509,14 @@ function render() {
 
 // 모바일 컨트롤 이벤트 리스너
 document.addEventListener('DOMContentLoaded', () => {
-    // 모바일 컨트롤 버튼 이벤트
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
     const rotateBtn = document.getElementById('rotateBtn');
     const dropBtn = document.getElementById('dropBtn');
 
-    let isTouchActive = false;
-
     // 터치 이벤트 처리
     function handleTouch(action) {
-        if (!gameOver && isGameRunning && !isTouchActive) {
+        if (!gameOver && isGameRunning && !touchActive) {
             switch(action) {
                 case 'left':
                     moveBlock(-1, 0);
@@ -494,16 +539,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 연속 터치를 위한 터치 홀드 처리
-    let touchInterval;
-    const touchDelay = 200; // 연속 동작 간격을 더 늘림
+    let touchInterval = null;
+    const touchDelay = 150;
 
     function startTouchInterval(action) {
-        if (!isTouchActive) {
-            isTouchActive = true;
-            touchInterval = setInterval(() => {
-                handleTouch(action);
-            }, touchDelay);
+        if (!touchActive) {
+            touchActive = true;
+            handleTouch(action);
+            touchInterval = setInterval(() => handleTouch(action), touchDelay);
         }
     }
 
@@ -512,47 +555,33 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(touchInterval);
             touchInterval = null;
         }
-        isTouchActive = false;
+        touchActive = false;
     }
 
     // 터치 이벤트 리스너 추가
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleTouch('left');
-        startTouchInterval('left');
-    });
+    const addTouchListeners = (btn, action) => {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!touchActive) {
+                startTouchInterval(action);
+            }
+        });
 
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleTouch('right');
-        startTouchInterval('right');
-    });
-
-    rotateBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!isTouchActive) {
-            handleTouch('rotate');
-        }
-    });
-
-    dropBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!isTouchActive) {
-            handleTouch('drop');
-        }
-    });
-
-    // 터치 종료 시 인터벌 제거
-    [leftBtn, rightBtn, rotateBtn, dropBtn].forEach(btn => {
         btn.addEventListener('touchend', (e) => {
             e.preventDefault();
             clearTouchInterval();
         });
+
         btn.addEventListener('touchcancel', (e) => {
             e.preventDefault();
             clearTouchInterval();
         });
-    });
+    };
+
+    addTouchListeners(leftBtn, 'left');
+    addTouchListeners(rightBtn, 'right');
+    addTouchListeners(rotateBtn, 'rotate');
+    addTouchListeners(dropBtn, 'drop');
 });
 
 function drawGrid() {
