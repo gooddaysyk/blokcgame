@@ -9,6 +9,12 @@ const COLS = 10;
 const ROWS = 20;
 const NEXT_BLOCK_SIZE = 25;
 
+// 캔버스 크기 설정
+canvas.width = BLOCK_SIZE * COLS;
+canvas.height = BLOCK_SIZE * ROWS;
+nextCanvas.width = NEXT_BLOCK_SIZE * 4;
+nextCanvas.height = NEXT_BLOCK_SIZE * 4;
+
 // 블록 색상 정의
 const COLORS = [
     { main: '#8B4513', light: 'rgba(255, 255, 255, 0.2)', dark: 'rgba(0, 0, 0, 0.2)' }, // 새들 브라운
@@ -234,6 +240,18 @@ function restartGame() {
     initGame();
 }
 
+// 게임 종료
+function quitGame() {
+    const modal = document.getElementById('gameOverModal');
+    modal.style.display = 'none';
+    gameOver = true;
+    isGameRunning = false;
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+}
+
 // 새로운 블록 생성
 function createNewBlock() {
     try {
@@ -449,9 +467,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const rotateBtn = document.getElementById('rotateBtn');
     const dropBtn = document.getElementById('dropBtn');
 
+    let isTouchActive = false;
+
     // 터치 이벤트 처리
     function handleTouch(action) {
-        if (!gameOver && isGameRunning) {
+        if (!gameOver && isGameRunning && !isTouchActive) {
             switch(action) {
                 case 'left':
                     moveBlock(-1, 0);
@@ -476,10 +496,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 연속 터치를 위한 터치 홀드 처리
     let touchInterval;
-    const touchDelay = 150; // 연속 동작 간격을 조금 늘림
+    const touchDelay = 200; // 연속 동작 간격을 더 늘림
 
     function startTouchInterval(action) {
-        touchInterval = setInterval(() => handleTouch(action), touchDelay);
+        if (!isTouchActive) {
+            isTouchActive = true;
+            touchInterval = setInterval(() => {
+                handleTouch(action);
+            }, touchDelay);
+        }
     }
 
     function clearTouchInterval() {
@@ -487,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(touchInterval);
             touchInterval = null;
         }
+        isTouchActive = false;
     }
 
     // 터치 이벤트 리스너 추가
@@ -504,16 +530,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     rotateBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        handleTouch('rotate');
+        if (!isTouchActive) {
+            handleTouch('rotate');
+        }
     });
 
     dropBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        handleTouch('drop');
+        if (!isTouchActive) {
+            handleTouch('drop');
+        }
     });
 
     // 터치 종료 시 인터벌 제거
-    [leftBtn, rightBtn].forEach(btn => {
+    [leftBtn, rightBtn, rotateBtn, dropBtn].forEach(btn => {
         btn.addEventListener('touchend', (e) => {
             e.preventDefault();
             clearTouchInterval();
