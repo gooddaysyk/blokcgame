@@ -8,21 +8,39 @@
         body {
             margin: 0;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #001529;
+            background: #2c1810;
             font-family: Arial, sans-serif;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .game-title {
+            color: #d4a373;
+            font-size: 48px;
+            text-align: center;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(212, 163, 115, 0.5);
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin: 0;
         }
 
         .game-container {
             display: flex;
             gap: 20px;
             padding: 20px;
-            background: rgba(0, 41, 83, 0.7);
+            background: rgba(139, 94, 60, 0.2);
             border-radius: 10px;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #d4a373;
         }
 
         .game-area {
@@ -37,37 +55,39 @@
         }
 
         .next-block {
-            background: rgba(0, 31, 63, 0.8);
+            background: rgba(139, 94, 60, 0.2);
             padding: 10px;
             border-radius: 5px;
             text-align: center;
+            border: 1px solid #d4a373;
         }
 
         .next-block-title {
-            color: #00a8ff;
+            color: #d4a373;
             font-size: 16px;
             margin-bottom: 10px;
             text-transform: uppercase;
         }
 
         .next-block-canvas {
-            background: rgba(0, 21, 43, 0.9);
-            border: 2px solid rgba(0, 168, 255, 0.3);
+            background: rgba(139, 94, 60, 0.3);
+            border: 2px solid #d4a373;
             border-radius: 3px;
         }
 
         canvas {
-            border: 3px solid rgba(0, 168, 255, 0.3);
+            border: 3px solid #d4a373;
             border-radius: 5px;
-            background-color: rgba(0, 21, 43, 0.9);
+            background-color: rgba(139, 94, 60, 0.3);
         }
 
         .controls {
-            color: #00a8ff;
-            background: rgba(0, 31, 63, 0.8);
+            color: #d4a373;
+            background: rgba(139, 94, 60, 0.2);
             padding: 15px;
             border-radius: 5px;
             font-size: 14px;
+            border: 1px solid #d4a373;
         }
 
         .controls p {
@@ -76,14 +96,14 @@
         }
 
         .time {
-            color: #00a8ff;
+            color: #d4a373;
             font-size: 24px;
             text-align: center;
             margin-bottom: 20px;
         }
 
         .score {
-            color: #00a8ff;
+            color: #d4a373;
             font-size: 20px;
             text-align: center;
             margin-bottom: 20px;
@@ -104,28 +124,28 @@
         }
 
         .modal-content {
-            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+            background: linear-gradient(145deg, #2c1810, #3d2315);
             padding: 30px;
             border-radius: 20px;
             text-align: center;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid #d4a373;
             max-width: 400px;
             width: 80%;
         }
 
         .modal h2 {
-            color: #fff;
+            color: #d4a373;
             margin: 0 0 20px 0;
             font-size: 2em;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            text-shadow: 0 0 10px rgba(212, 163, 115, 0.3);
         }
 
         .score-display {
             font-size: 3em;
-            color: #00ff00;
+            color: #d4a373;
             margin: 20px 0;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            text-shadow: 0 0 10px rgba(212, 163, 115, 0.5);
             font-weight: bold;
         }
 
@@ -148,53 +168,102 @@
         }
 
         .play-again {
-            background: linear-gradient(45deg, #00ff00, #00cc00);
-            color: white;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            background: linear-gradient(45deg, #d4a373, #b08968);
+            color: #2c1810;
+            box-shadow: 0 0 15px rgba(212, 163, 115, 0.3);
         }
 
         .quit-game {
-            background: linear-gradient(45deg, #ff3333, #cc0000);
-            color: white;
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+            background: linear-gradient(45deg, #8b5e3c, #6b4c32);
+            color: #d4a373;
+            box-shadow: 0 0 15px rgba(139, 94, 60, 0.3);
         }
 
         .modal-button:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(212, 163, 115, 0.5);
         }
 
-        .game-title {
-            color: #00a8ff;
-            font-size: 48px;
-            text-align: center;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(0, 168, 255, 0.5);
-            font-weight: bold;
-            letter-spacing: 3px;
+        /* 모바일 컨트롤 스타일 */
+        .mobile-controls {
+            display: none;
+            position: relative;
             width: 100%;
+            max-width: 300px;
+            margin-top: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 94, 60, 0.2);
+            border: 2px solid #d4a373;
+            border-radius: 50%;
+            color: #d4a373;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: rgba(139, 94, 60, 0.4);
+        }
+
+        /* 모바일 기기에서만 컨트롤 표시 */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: block;
+            }
+
+            .controls {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
-    <h1 class="game-title">Tetris Game</h1>
-    <div class="game-container">
-        <div class="game-area">
-            <canvas id="gameCanvas" width="300" height="600"></canvas>
-        </div>
-        <div class="side-panel">
-            <div class="time">01:11</div>
-            <div class="score">Score<br>0</div>
-            <div class="next-block">
-                <div class="next-block-title">Next</div>
-                <canvas id="nextBlockCanvas" width="100" height="100" class="next-block-canvas"></canvas>
+    <div class="main-container">
+        <h1 class="game-title">Tetris Game</h1>
+        <div class="game-container">
+            <div class="game-area">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
             </div>
-            <div class="controls">
-                <p>← → : Move</p>
-                <p>↑ : Rotate</p>
-                <p>↓ : Down</p>
-                <p>Space : Drop</p>
+            <div class="side-panel">
+                <div class="time">00:00</div>
+                <div class="score">Score<br>0</div>
+                <div class="next-block">
+                    <div class="next-block-title">Next</div>
+                    <canvas id="nextBlockCanvas" width="100" height="100" class="next-block-canvas"></canvas>
+                </div>
+                <div class="controls">
+                    <p>← → : Move</p>
+                    <p>↑ : Rotate</p>
+                    <p>↓ : Down</p>
+                    <p>Space : Drop</p>
+                </div>
+            </div>
+        </div>
+        <!-- 모바일 컨트롤 추가 -->
+        <div class="mobile-controls">
+            <div class="control-row">
+                <div class="control-btn" id="rotateBtn">↺</div>
+            </div>
+            <div class="control-row">
+                <div class="control-btn" id="leftBtn">←</div>
+                <div class="control-btn" id="dropBtn">▼</div>
+                <div class="control-btn" id="rightBtn">→</div>
             </div>
         </div>
     </div>
